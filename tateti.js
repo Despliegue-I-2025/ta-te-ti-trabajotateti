@@ -4,7 +4,7 @@ const PORT = 3000;
 
 
 const BOT_nuestro = 1;
-const oponente = 2;
+const Bot_oponente = 2;
 const EMPTY = 0;
 
 
@@ -38,7 +38,7 @@ function TomarMovimiento(board) {
     }
 
     
-    const blockingMove = ganaroBloquear (board, oponente);
+    const blockingMove = ganaroBloquear (board, Bot_oponente);
     if (blockingMove !== null) {
         console.log('Movimiento bloqueador encontrado:', blockingMove);
         return blockingMove;
