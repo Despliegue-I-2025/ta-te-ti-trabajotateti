@@ -1,29 +1,20 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// Constantes para los jugadores
-const BOT_MARKER = 1;
-const OPPONENT_MARKER = 2;
+
+const BOT_nuestro = 1;
+const oponente = 2;
 const EMPTY = 0;
 
-// Combinaciones ganadoras
-const WINNING_COMBINATIONS = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
-    [0, 4, 8], [2, 4, 6]             // Diagonales
+
+const combinaciones_ganadoras = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+    [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+    [0, 4, 8], [2, 4, 6]            
 ];
 
-// Middleware para logging (útil para debugging)
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-});
-
-/**
- * Encuentra movimientos ganadores o bloqueadores
- */
-function findWinningOrBlockingMove(board, player) {
+function ganaroBloquear(board, player) {
     for (const combination of WINNING_COMBINATIONS) {
         const positions = combination.map(pos => board[pos]);
         const emptySpot = combination.find(pos => board[pos] === EMPTY);
@@ -36,21 +27,18 @@ function findWinningOrBlockingMove(board, player) {
     return null;
 }
 
-/**
- * Función principal para el movimiento del bot
- */
-function getBotMove(board) {
+function TomarMovimiento(board) {
     console.log('Tablero recibido:', board);
     
-    // 1. Ganar si es posible
-    const winningMove = findWinningOrBlockingMove(board, BOT_MARKER);
+   
+    const winningMove = ganaroBloquear (board, BOT_nuestro);
     if (winningMove !== null) {
         console.log('Movimiento ganador encontrado:', winningMove);
         return winningMove;
     }
 
-    // 2. Bloquear al oponente
-    const blockingMove = findWinningOrBlockingMove(board, OPPONENT_MARKER);
+    
+    const blockingMove = ganaroBloquear (board, oponente);
     if (blockingMove !== null) {
         console.log('Movimiento bloqueador encontrado:', blockingMove);
         return blockingMove;
@@ -71,7 +59,7 @@ function getBotMove(board) {
         return randomCorner;
     }
 
-    // 5. Cualquier movimiento disponible
+    
     const emptyPositions = board
         .map((value, index) => value === EMPTY ? index : null)
         .filter(index => index !== null);
@@ -82,7 +70,7 @@ function getBotMove(board) {
         return randomMove;
     }
     
-    // Si no hay movimientos disponibles
+    
     return -1;
 }
 
@@ -132,7 +120,6 @@ app.get('/move', (req, res) => {
     }
 });
 
-// Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
@@ -141,7 +128,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Manejo de errores 404
+//  error 404
 app.use('*', (req, res) => {
     res.status(404).json({ 
         error: 'Endpoint no encontrado',
