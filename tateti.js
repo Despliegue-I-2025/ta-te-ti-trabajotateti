@@ -1,28 +1,24 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
-// Constantes para los jugadores
-const BOT_MARKER = 1;
-const OPPONENT_MARKER = 2;
-const EMPTY = 0;
 
-// Combinaciones ganadoras
+const BOT_Nuestro = 1;
+const Bot_oponente = 2;
+const albitro = 0;
+
+
 const WINNING_COMBINATIONS = [
-    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
-    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
-    [0, 4, 8], [2, 4, 6]             // Diagonales
-];
+    [0, 1, 2], [3, 4, 5], [6, 7, 8], 
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]             
 
-// Middleware para logging (útil para debugging)
+
 app.use((req, res, next) => {
     console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
     next();
 });
 
-/**
- * Encuentra movimientos ganadores o bloqueadores
- */
 function findWinningOrBlockingMove(board, player) {
     for (const combination of WINNING_COMBINATIONS) {
         const positions = combination.map(pos => board[pos]);
@@ -36,33 +32,30 @@ function findWinningOrBlockingMove(board, player) {
     return null;
 }
 
-/**
- * Función principal para el movimiento del bot
- */
 function getBotMove(board) {
     console.log('Tablero recibido:', board);
     
-    // 1. Ganar si es posible
+    // Ganar si es posible
     const winningMove = findWinningOrBlockingMove(board, BOT_MARKER);
     if (winningMove !== null) {
         console.log('Movimiento ganador encontrado:', winningMove);
         return winningMove;
     }
 
-    // 2. Bloquear al oponente
+    // Bloquear al oponente
     const blockingMove = findWinningOrBlockingMove(board, OPPONENT_MARKER);
     if (blockingMove !== null) {
         console.log('Movimiento bloqueador encontrado:', blockingMove);
         return blockingMove;
     }
 
-    // 3. Priorizar el centro
+    // Priorizar el centro
     if (board[4] === EMPTY) {
         console.log('Movimiento al centro');
         return 4;
     }
 
-    // 4. Priorizar esquinas
+    // Priorizar esquinas
     const corners = [0, 2, 6, 8];
     const availableCorners = corners.filter(corner => board[corner] === EMPTY);
     if (availableCorners.length > 0) {
@@ -71,7 +64,7 @@ function getBotMove(board) {
         return randomCorner;
     }
 
-    // 5. Cualquier movimiento disponible
+    // Cualquier movimiento disponible
     const emptyPositions = board
         .map((value, index) => value === EMPTY ? index : null)
         .filter(index => index !== null);
@@ -82,7 +75,7 @@ function getBotMove(board) {
         return randomMove;
     }
     
-    // Si no hay movimientos disponibles
+    
     return -1;
 }
 
@@ -103,7 +96,7 @@ app.get('/move', (req, res) => {
             });
         }
 
-        // Validar que el tablero solo contenga 0, 1 o 2
+        
         const validValues = board.every(cell => [0, 1, 2].includes(cell));
         if (!validValues) {
             return res.status(400).json({ 
@@ -132,7 +125,7 @@ app.get('/move', (req, res) => {
     }
 });
 
-// Health check endpoint
+
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'OK', 
@@ -141,7 +134,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Manejo de errores 404
+// error404
 app.use('*', (req, res) => {
     res.status(404).json({ 
         error: 'Endpoint no encontrado',
