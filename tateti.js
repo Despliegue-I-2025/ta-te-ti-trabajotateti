@@ -15,7 +15,7 @@ const combinaciones_ganadoras = [
 ];
 
 function ganaroBloquear(board, player) {
-    for (const combination of WINNING_COMBINATIONS) {
+    for (const combination of combinaciones_ganadoras) {
         const positions = combination.map(pos => board[pos]);
         const emptySpot = combination.find(pos => board[pos] === EMPTY);
         const playerCount = positions.filter(marker => marker === player).length;
