@@ -99,7 +99,7 @@ app.get('/move', (req, res) => {
             });
         }
 
-        const move = getBotMove(board);
+        const move = TomarMovimiento(board);
         
         if (move === -1) {
             return res.status(400).json({ error: 'No hay movimientos disponibles' });
