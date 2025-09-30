@@ -1,12 +1,10 @@
 const express = require('express');
 const app = express();
-const PORT = 3007;
-
+const PORT = process.env.PORT || 3007;
 
 const BOT_nuestro = 1;
 const Bot_oponente = 2;
 const EMPTY = 0;
-
 
 const combinaciones_ganadoras = [
     [0, 1, 2], [3, 4, 5], [6, 7, 8], 
@@ -28,48 +26,55 @@ function ganaroBloquear(board, player) {
 }
 
 function TomarMovimiento(board) {
-    console.log('Tablero recibido:', board);
+    // Solo mostrar logs si no estamos en entorno de test
+    if (process.env.NODE_ENV !== 'test') {
+        console.log('Tablero recibido:', board);
+    }
     
-   
-    const winningMove = ganaroBloquear (board, BOT_nuestro);
+    const winningMove = ganaroBloquear(board, BOT_nuestro);
     if (winningMove !== null) {
-        console.log('Movimiento ganador encontrado:', winningMove);
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('Movimiento ganador encontrado:', winningMove);
+        }
         return winningMove;
     }
 
-    
-    const blockingMove = ganaroBloquear (board, Bot_oponente);
+    const blockingMove = ganaroBloquear(board, Bot_oponente);
     if (blockingMove !== null) {
-        console.log('Movimiento bloqueador encontrado:', blockingMove);
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('Movimiento bloqueador encontrado:', blockingMove);
+        }
         return blockingMove;
     }
 
-    // 3. Priorizar el centro
     if (board[4] === EMPTY) {
-        console.log('Movimiento al centro');
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('Movimiento al centro');
+        }
         return 4;
     }
 
-    // 4. Priorizar esquinas
     const corners = [0, 2, 6, 8];
     const availableCorners = corners.filter(corner => board[corner] === EMPTY);
     if (availableCorners.length > 0) {
         const randomCorner = availableCorners[Math.floor(Math.random() * availableCorners.length)];
-        console.log('Movimiento a esquina:', randomCorner);
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('Movimiento a esquina:', randomCorner);
+        }
         return randomCorner;
     }
 
-    
     const emptyPositions = board
         .map((value, index) => value === EMPTY ? index : null)
         .filter(index => index !== null);
     
     if (emptyPositions.length > 0) {
         const randomMove = emptyPositions[Math.floor(Math.random() * emptyPositions.length)];
-        console.log('Movimiento aleatorio:', randomMove);
+        if (process.env.NODE_ENV !== 'test') {
+            console.log('Movimiento aleatorio:', randomMove);
+        }
         return randomMove;
     }
-    
     
     return -1;
 }
@@ -112,7 +117,16 @@ app.get('/move', (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error:', error);
+        // Si es error de JSON, retornar 400 en lugar de 500
+        if (error instanceof SyntaxError) {
+            return res.status(400).json({ 
+                error: 'JSON inválido en parámetro board' 
+            });
+        }
+        
+        if (process.env.NODE_ENV !== 'test') {
+            console.error('Error:', error);
+        }
         res.status(500).json({ 
             error: 'Error interno del servidor',
             detalle: error.message 
@@ -128,7 +142,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-//  error 404
+// Manejo de error 404
 app.use('*', (req, res) => {
     res.status(404).json({ 
         error: 'Endpoint no encontrado',
@@ -136,7 +150,23 @@ app.use('*', (req, res) => {
     });
 });
 
-app.listen(PORT, () => {
-    console.log(`🤖 Bot de Ta-Te-Ti escuchando en puerto ${PORT}`);
-    console.log(`📍 Endpoint: http://localhost:${PORT}/move?board=[0,0,0,0,0,0,0,0,0]`);
-});
+// Solo iniciar el servidor si no estamos en entorno de test
+let server;
+if (process.env.NODE_ENV !== 'test') {
+    server = app.listen(PORT, () => {
+        console.log(`🤖 Bot de Ta-Te-Ti escuchando en puerto ${PORT}`);
+        console.log(`📍 Endpoint: http://localhost:${PORT}/move?board=[0,0,0,0,0,0,0,0,0]`);
+    });
+}
+
+// Exportar para testing
+module.exports = {
+    app,
+    server: process.env.NODE_ENV !== 'test' ? server : null,
+    ganaroBloquear,
+    TomarMovimiento,
+    combinaciones_ganadoras,
+    BOT_nuestro,
+    Bot_oponente,
+    EMPTY
+};
