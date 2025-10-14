@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3007;
+const PORT = 3020;
 
 // --- CONFIGURACIÓN DEL JUEGO 5x5 (4 en línea) ---
 const BOARD_SIZE = 5;
@@ -163,9 +163,7 @@ function findDoubleThreat(board, player) {
     return bestMove;
 }
 
-/**
- * Implementa la estrategia para el bot 5x5.
- */
+
 function TomarMovimiento(board) {
     if (process.env.NODE_ENV !== 'test') {
         console.log('Tablero 5x5 recibido:', board);
@@ -280,7 +278,8 @@ app.get('/move', (req, res) => {
             return res.status(400).json({ error: 'No hay movimientos disponibles' });
         }
 
-        res.json({ 
+        // 🟢 FIX: Garantiza que la ejecución se detiene aquí con el 'return'
+        return res.json({ 
             movimiento: move,
             tablero: board,
             mensaje: `Movimiento en posición ${move}`
@@ -294,9 +293,10 @@ app.get('/move', (req, res) => {
         }
         
         if (process.env.NODE_ENV !== 'test') {
-            console.error('Error:', error);
+            console.error('Error interno del servidor:', error);
         }
-        res.status(500).json({ 
+        // 🔴 FIX CRÍTICO: Garantiza que la respuesta de error 500 también se detiene
+        return res.status(500).json({ 
             error: 'Error interno del servidor',
             detalle: error.message 
         });
@@ -304,7 +304,8 @@ app.get('/move', (req, res) => {
 });
 
 app.get('/health', (req, res) => {
-    res.json({ 
+    // 🟠 FIX: Añadir 'return' por buenas prácticas y consistencia
+    return res.json({ 
         status: 'OK', 
         message: 'Bot de 4 en línea (5x5) funcionando',
         timestamp: new Date().toISOString()
@@ -312,7 +313,8 @@ app.get('/health', (req, res) => {
 });
 
 app.use('*', (req, res) => {
-    res.status(404).json({ 
+    // 🟠 FIX: Añadir 'return' por consistencia
+    return res.status(404).json({ 
         error: 'Endpoint no encontrado',
         endpoints_disponibles: ['/move?board=[array]', '/health']
     });
@@ -322,7 +324,7 @@ let server;
 if (process.env.NODE_ENV !== 'test') {
     server = app.listen(PORT, () => {
         const emptyBoard = Array(BOARD_LENGTH).fill(0).toString();
-        console.log(`Bot  escuchando en puerto ${PORT}`);
+        console.log(`Bot  escuchando en puerto ${PORT}`);
         console.log(`Endpoint: http://localhost:${PORT}/move?board=[${emptyBoard}]`);
     });
 }
