@@ -573,7 +573,7 @@ if (process.env.NODE_ENV !== 'test' || require.main === module) {
     });
 }*/
 
-module.exports = {
+exports = {
     app,
     findOpenThreat,
     findDoubleThreat,
