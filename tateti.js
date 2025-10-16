@@ -562,16 +562,7 @@ app.use('*', (req, res) => {
         endpoints_disponibles: ['/move?board=[array]', '/health']
     });
 });
-/*
-let server;
-if (process.env.NODE_ENV !== 'test' || require.main === module) {
-    server = app.listen(PORT, () => {
-        const emptyBoard = Array(BOARD_LENGTH).fill(0).toString();
-        console.log(`Bot escuchando en puerto ${PORT}`);
-        console.log(`Endpoint: http://localhost:${PORT}/move?board=[${emptyBoard}]`);
-        console.log(`Health check: http://localhost:${PORT}/health`);
-    });
-}*/
+
 
 module.exports = {
     app,
