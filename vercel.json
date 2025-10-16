@@ -8,11 +8,7 @@
   ],
   "routes": [
     {
-      "src": "/move",
-      "dest": "/api/move.js"
-    },
-    {
-      "src": "/health",
+      "src": "/(.*)",
       "dest": "/api/move.js"
     }
   ]
