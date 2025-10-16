@@ -1,23 +1,6 @@
 {
   "version": 2,
   "builds": [
-    {
-      "src": "api/move.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/move",
-      "dest": "/api/move.js"
-    },
-    {
-      "src": "/health",
-      "dest": "/api/move.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/api/move.js"  
-    }
+    { "src": "api/*.js", "use": "@vercel/node" }
   ]
 }
