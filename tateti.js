@@ -496,40 +496,80 @@ function TomarMovimiento(board) {
 // --- ENDPOINTS Y SERVIDOR ---
 // ----------------------------------------------------------------------
 
-function validateBoard(req, res, next) {
-  let board = req.method === 'POST' ? req.body.board : req.query.board;
-  if (typeof board === 'string') {
-    try { board = JSON.parse(board); } catch { board = board.split(',').map(Number); }
-  }
-  if (!Array.isArray(board) || board.length !== 25)
-    return res.status(400).json({ error: 'El tablero debe tener 25 posiciones.' });
-  req.board = board;
-  next();
+app.get('/move', (req, res) => {
+    try {
+        const boardParam = req.query.board;
+        
+        if (!boardParam) {
+            return res.status(400).json({ error: 'Parámetro board requerido' });
+        }
+
+        const board = JSON.parse(boardParam);
+        
+        if (!Array.isArray(board) || board.length !== BOARD_LENGTH) {
+            return res.status(400).json({ 
+                error: `El tablero debe ser un array de ${BOARD_LENGTH} posiciones (0-${BOARD_LENGTH - 1}) para 5x5` 
+            });
+        }
+
+        const validValues = board.every(cell => [0, 1, 2].includes(cell));
+        if (!validValues) {
+            return res.status(400).json({ 
+                error: 'El tablero solo puede contener valores 0, 1 o 2' 
+            });
+        }
+
+        const move = TomarMovimiento(board);
+        
+        if (move === -1) {
+            return res.status(400).json({ error: 'No hay movimientos disponibles' });
+        }
+
+        return res.json({ 
+            movimiento: move,
+            tablero: board,
+            mensaje: `Movimiento en posición ${move}`
+        });
+
+    } catch (error) {
+        if (error instanceof SyntaxError) {
+            return res.status(400).json({ 
+                error: 'JSON inválido en parámetro board' 
+            });
+        }
+        
+        if (process.env.NODE_ENV !== 'test') {
+            console.error('Error interno del servidor:', error);
+        }
+        return res.status(500).json({ 
+            error: 'Error interno del servidor',
+            detalle: error.message 
+        });
+    }
+});
+
+app.get('/health', (req, res) => {
+    return res.json({ 
+        status: 'OK', 
+        message: 'Bot de 4 en línea (5x5) funcionando',
+        timestamp: new Date().toISOString()
+    });
+});
+
+app.use('*', (req, res) => {
+    return res.status(404).json({ 
+        error: 'Endpoint no encontrado',
+        endpoints_disponibles: ['/move?board=[array]', '/health']
+    });
+});
+
+// Iniciar servidor para producción
+if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 3020;
+    app.listen(PORT, () => {
+        console.log(`Bot de 4 en línea funcionando en puerto ${PORT}`);
+    });
 }
-
-app.get('/', (_, res) => res.send('Servidor Ta-Te-Ti 5x5 con IA fuerte funcionando ✔️'));
-
-app.get('/check', validateBoard, (req, res) => res.json({ ganador: checkWinner(req.board) }));
-
-app.get('/move', validateBoard, (req, res) => {
-  const player = req.query.player ? Number(req.query.player) : detectPlayer(req.board);
-  const move = bestMove(req.board, player);
-  res.json({ movimiento: move });
-});
-
-app.post('/move', validateBoard, (req, res) => {
-  const player = req.body.player ? Number(req.body.player) : detectPlayer(req.board);
-  const move = bestMove(req.board, player);
-  res.json({ movimiento: move });
-});
-
-// ===============================
-// 🔹 Inicio del servidor
-// ===============================
-app.listen(PORT, () => {
-  console.log(`Servidor Ta-Te-Ti 5x5 en http://localhost:${PORT}`);
-});
-
 
 module.exports = {
     app,
