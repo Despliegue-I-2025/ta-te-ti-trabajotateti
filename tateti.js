@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express();
+app.use(express.json());
 const PORT = 3020;
 
 // --- CONFIGURACIÓN DEL JUEGO 5x5 (4 en línea) ---
