@@ -8,8 +8,16 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/move",
       "dest": "/api/move.js"
+    },
+    {
+      "src": "/health",
+      "dest": "/api/move.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/move.js"  
     }
   ]
 }
