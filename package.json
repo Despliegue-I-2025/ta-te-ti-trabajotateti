@@ -1,10 +1,16 @@
 {
-  "name": "tateti-bot",
+  "name": "bot-tateti",
   "version": "1.0.0",
+  "description": "Bot interactivo de 4 en línea 5x5",
+  "main": "tateti.js",
   "scripts": {
-    "test": "jest"
+    "start": "node tateti.js",
+    "dev": "node tateti.js"
   },
-  "devDependencies": {
-    "jest": "^30.2.0"
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }

@@ -2,14 +2,14 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/move.js",
+      "src": "tateti.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/api/move.js"
+      "dest": "/tateti.js"
     }
   ]
 }

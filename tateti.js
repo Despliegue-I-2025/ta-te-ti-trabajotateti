@@ -564,12 +564,11 @@ app.use('*', (req, res) => {
 });
 
 // Iniciar servidor para producción
-if (process.env.NODE_ENV !== 'test') {
-    const PORT = process.env.PORT || 3020;
-    app.listen(PORT, () => {
-        console.log(`Bot de 4 en línea funcionando en puerto ${PORT}`);
-    });
-}
+const server = app.listen(process.env.PORT || 3020, () => {
+    console.log(`Bot de 4 en línea funcionando en puerto ${process.env.PORT || 3020}`);
+});
+
+
 
 module.exports = {
     app,
