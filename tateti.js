@@ -320,18 +320,23 @@ app.use('*', (req, res) => {
     });
 });
 
+// 🔴 FIX CRÍTICO: El servidor debe iniciarse SIEMPRE cuando se ejecute el archivo directamente
 let server;
-if (process.env.NODE_ENV !== 'test') {
+
+// Iniciar servidor si no estamos en entorno de test O si el archivo se ejecuta directamente
+if (process.env.NODE_ENV !== 'test' || require.main === module) {
     server = app.listen(PORT, () => {
         const emptyBoard = Array(BOARD_LENGTH).fill(0).toString();
-        console.log(`Bot  escuchando en puerto ${PORT}`);
+        console.log(`Bot escuchando en puerto ${PORT}`);
         console.log(`Endpoint: http://localhost:${PORT}/move?board=[${emptyBoard}]`);
+        console.log(`Health check: http://localhost:${PORT}/health`);
     });
 }
 
+// Exportar tanto el app como el server para poder cerrarlo adecuadamente
 module.exports = {
     app,
-    server: process.env.NODE_ENV !== 'test' ? server : null,
+    server, // Exportar el server siempre
     findOpenThreat,
     findDoubleThreat,
     TomarMovimiento,
