@@ -1,40 +1,37 @@
-# Este flujo de trabajo se dispara en cada 'push' a la rama principal (main).
-name: Deploy Bot to Vercel
+﻿name: Deploy to Vercel
 
 on:
   push:
     branches:
-      - main  # o master, dependiendo de tu rama principal
-  workflow_dispatch: # Permite ejecutar el workflow manualmente desde GitHub
+      - main
+      - master
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
-    
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18' # Usamos la versión 18 o superior, según el requisito.
+          node-version: 18
+          cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests # Asegúrate de tener pruebas configuradas con 'npm test'
+      - name: Run tests
         run: npm test
 
-      # Paso para Despliegue en Vercel
-      - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
-        with:
-          # VERCEL_TOKEN, VERCEL_ORG_ID y VERCEL_PROJECT_ID se leen de los secretos de GitHub
-          vercel-token: ${{ secrets.VERCEL_TOKEN }} 
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }} 
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          # Especifica la carpeta raíz del proyecto
-          working-directory: ./
-          # El bot necesita estar en producción (prod)
-          vercel-args: '--prod'
+      - name: Pull Vercel environment
+        run: npx vercel pull --yes --environment=production --token $VERCEL_TOKEN
+
+      - name: Build project with Vercel
+        run: npx vercel build --prod --token $VERCEL_TOKEN
+
+      - name: Deploy to Vercel (production)
+        run: npx vercel deploy --prebuilt --prod --token $VERCEL_TOKEN

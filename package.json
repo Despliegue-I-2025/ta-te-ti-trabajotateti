@@ -5,16 +5,19 @@
   "main": "tateti.js",
   "scripts": {
     "start": "node tateti.js",
-    "test": "echo \"Tests configurados. Se ejecutará Jest cuando se añadan los archivos de prueba.\" && exit 0"
+    "test": "jest"
+  
   },
-  "keywords": [
-    "tateti",
-    "connect4",
-    "bot"
-  ],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
-    "express": "^4.19.2"
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/.vercel/"
+    ]
   }
 }
