@@ -6,7 +6,7 @@ const app = express();
 // =================================================================
 
 // Definición de PORT: usa la variable de entorno o el puerto 3000 por defecto.
-// Esto soluciona problemas si la variable de entorno PORT no está definida.
+// NOTA: Esta variable solo se usa si se ejecuta localmente.
 const PORT = process.env.PORT || 3000; 
 
 // Constantes del Juego (asumiendo 5x5 como se indica en los comentarios del código original)
@@ -127,18 +127,12 @@ app.use('*', (req, res) => {
 });
 
 // =================================================================
-// 4. INICIO DEL SERVIDOR
+// 4. INICIO DEL SERVIDOR (Solo para ejecución LOCAL)
 // =================================================================
 
-// =================================================================
-// 4. INICIO DEL SERVIDOR
-// =================================================================
-
-let server;
-
-// Solo iniciar el servidor si estamos ejecutando localmente (no en Vercel)
+// Solo iniciar el servidor si estamos ejecutando localmente (no en Vercel ni en tests)
 if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
-    server = app.listen(PORT, () => {
+    app.listen(PORT, () => {
         const emptyBoard = Array(BOARD_LENGTH).fill(0).toString();
         console.log(`🤖 Bot escuchando en puerto ${PORT}`);
         console.log(`➡️ Endpoint de prueba: http://localhost:${PORT}/move?board=[${emptyBoard}]`);
@@ -151,15 +145,24 @@ if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
     });
 }
 
-module.exports = {
-    app,
-    server: process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test' ? server : null,
-    findOpenThreat,
-    findDoubleThreat,
-    TomarMovimiento,
-    BOT_nuestro,
-    Bot_oponente,
-    EMPTY,
-    BOARD_LENGTH,
-    WIN_COUNT
-};
+// =================================================================
+// EXPORTACIÓN PARA VERCEL (SOLUCIÓN DEL ERROR)
+// =================================================================
+
+// Exportamos solo la instancia de 'app' para que Vercel la pueda iniciar
+// en su entorno serverless.
+module.exports = app;
+
+// Además, exportamos las funciones de lógica para que el archivo de tests
+// las pueda importar.
+// Las exportamos como propiedades separadas del objeto principal, si son necesarias.
+module.exports.findOpenThreat = findOpenThreat;
+module.exports.TomarMovimiento = TomarMovimiento;
+module.exports.BOT_nuestro = BOT_nuestro;
+module.exports.Bot_oponente = Bot_oponente;
+module.exports.EMPTY = EMPTY;
+module.exports.BOARD_LENGTH = BOARD_LENGTH;
+module.exports.WIN_COUNT = WIN_COUNT;
+
+// NOTA: Eliminé la variable 'server' del final, ya que no se usa en Vercel
+// y su exportación estaba causando el error.
