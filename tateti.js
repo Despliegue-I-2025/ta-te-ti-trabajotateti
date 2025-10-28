@@ -130,15 +130,19 @@ app.use('*', (req, res) => {
 // 4. INICIO DEL SERVIDOR
 // =================================================================
 
+// =================================================================
+// 4. INICIO DEL SERVIDOR
+// =================================================================
+
 let server;
-// Solo iniciamos el servidor si no estamos en modo de prueba
-if (process.env.NODE_ENV !== 'test') {
+
+// Solo iniciar el servidor si estamos ejecutando localmente (no en Vercel)
+if (process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test') {
     server = app.listen(PORT, () => {
         const emptyBoard = Array(BOARD_LENGTH).fill(0).toString();
         console.log(`🤖 Bot escuchando en puerto ${PORT}`);
         console.log(`➡️ Endpoint de prueba: http://localhost:${PORT}/move?board=[${emptyBoard}]`);
     }).on('error', (err) => {
-        // Manejo de error de puerto (ej. si ya está en uso)
         if (err.code === 'EADDRINUSE') {
             console.error(`🚨 ERROR: El puerto ${PORT} ya está en uso.`);
         } else {
@@ -147,10 +151,9 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-// Exportar la app y funciones para poder realizar pruebas unitarias
 module.exports = {
     app,
-    server: process.env.NODE_ENV !== 'test' ? server : null,
+    server: process.env.VERCEL !== '1' && process.env.NODE_ENV !== 'test' ? server : null,
     findOpenThreat,
     findDoubleThreat,
     TomarMovimiento,
