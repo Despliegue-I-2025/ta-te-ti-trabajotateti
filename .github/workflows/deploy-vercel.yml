@@ -1,10 +1,10 @@
-# Este flujo de trabajo se dispara en cada 'push' a la rama principal (master).
+# Este flujo de trabajo se dispara en cada 'push' a la rama principal (main).
 name: Deploy Bot to Vercel
 
 on:
   push:
     branches:
-      - master # Usamos 'master' ya que es la rama que usas en tu repositorio
+      - main  # o master, dependiendo de tu rama principal
   workflow_dispatch: # Permite ejecutar el workflow manualmente desde GitHub
 
 jobs:
@@ -18,12 +18,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # Versión mínima requerida
+          node-version: '18' # Usamos la versión 18 o superior, según el requisito.
 
       - name: Install dependencies
         run: npm ci
 
-      # --- Paso de "Run tests" eliminado para evitar el error "exit 1" ---
+      - name: Run tests # Asegúrate de tener pruebas configuradas con 'npm test'
+        run: npm test
 
       # Paso para Despliegue en Vercel
       - name: Deploy to Vercel
