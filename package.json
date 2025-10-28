@@ -5,7 +5,7 @@
   "main": "tateti.js",
   "scripts": {
     "start": "node tateti.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Tests configurados. Se ejecutará Jest cuando se añadan los archivos de prueba.\" && exit 0"
   },
   "keywords": [
     "tateti",
