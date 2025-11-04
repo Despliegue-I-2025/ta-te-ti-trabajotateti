@@ -156,6 +156,7 @@ module.exports = app;
 // Además, exportamos las funciones de lógica para que el archivo de tests
 // las pueda importar.
 // Las exportamos como propiedades separadas del objeto principal, si son necesarias.
+/*
 module.exports.findOpenThreat = findOpenThreat;
 module.exports.TomarMovimiento = TomarMovimiento;
 module.exports.BOT_nuestro = BOT_nuestro;
@@ -164,5 +165,4 @@ module.exports.EMPTY = EMPTY;
 module.exports.BOARD_LENGTH = BOARD_LENGTH;
 module.exports.WIN_COUNT = WIN_COUNT;
 
-// NOTA: Eliminé la variable 'server' del final, ya que no se usa en Vercel
-// y su exportación estaba causando el error.
+*/
