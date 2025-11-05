@@ -129,7 +129,6 @@ app.use('*', (req, res) => {
 // =================================================================
 // 4. INICIO DEL SERVIDOR (Solo para ejecución LOCAL)
 // =================================================================
-
 let server;
 if (process.env.VERCEL_ENV === undefined) { 
     // Usamos 'VERCEL_ENV' porque es la variable que Vercel establece en sus servidores.
@@ -140,5 +139,8 @@ if (process.env.VERCEL_ENV === undefined) {
     });
 }
 
-
+// Exportamos la app y las funciones unitarias.
+// Esto permite que: 
+// 1. Vercel use 'app' como el handler principal para las peticiones.
+// 2. Jest importe todas las funciones para las pruebas unitarias.
 module.exports = { app, TomarMovimiento, toCoords, toIndex, findOpenThreat, BOT_nuestro, Bot_oponente, BOARD_LENGTH, WIN_COUNT };

@@ -5,7 +5,7 @@ const {
     Bot_oponente,
     BOARD_LENGTH,
     WIN_COUNT
-} = require('../tateti'); // Asegúrate que la ruta sea correcta (../tateti.js o ./tateti.js)
+} = require('./tateti'); // Asegúrate que la ruta sea correcta (../tateti.js o ./tateti.js)
 
 // --- CONSTANTES DEL JUEGO 5x5 (4 en línea) ---
 const EMPTY_BOARD = Array(BOARD_LENGTH).fill(0);
