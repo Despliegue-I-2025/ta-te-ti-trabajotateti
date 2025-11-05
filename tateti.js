@@ -138,66 +138,75 @@ function minimax(board, depth, isMax, player, alpha, beta, maxDepth = 3) {
 // 🔹 Función Principal del Bot
 // ===============================
 function TomarMovimiento(board) {
-  console.log('Calculando movimiento para tablero:', board);
-  
-  // Verificar movimientos inmediatos primero
-  const player = detectPlayer(board);
-  
-  // 1. Buscar movimiento ganador
-  for (let i = 0; i < BOARD_LENGTH; i++) {
-    if (board[i] === EMPTY) {
-      board[i] = player;
-      if (checkWinner(board) === player) {
-        board[i] = EMPTY;
-        console.log('Movimiento ganador encontrado:', i);
-        return i;
-      }
-      board[i] = EMPTY;
+    console.log('Calculando movimiento para tablero:', board);
+    
+    // ✅ CORRECCIÓN CRÍTICA: Si el tablero está completamente vacío, tomar el centro inmediatamente
+    const isEmpty = board.every(cell => cell === 0);
+    if (isEmpty) {
+        console.log('Tablero vacío - Moviendo al centro:', CENTER_POSITION);
+        return CENTER_POSITION;
     }
-  }
-  
-  // 2. Bloquear movimiento ganador del oponente
-  const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
-  for (let i = 0; i < BOARD_LENGTH; i++) {
-    if (board[i] === EMPTY) {
-      board[i] = opponent;
-      if (checkWinner(board) === opponent) {
-        board[i] = EMPTY;
-        console.log('Movimiento bloqueador encontrado:', i);
-        return i;
-      }
-      board[i] = EMPTY;
+    
+    // Verificar movimientos inmediatos primero
+    const player = detectPlayer(board);
+    
+    // 1. Buscar movimiento ganador
+    for (let i = 0; i < BOARD_LENGTH; i++) {
+        if (board[i] === EMPTY) {
+            board[i] = player;
+            if (checkWinner(board) === player) {
+                board[i] = EMPTY;
+                console.log('Movimiento ganador encontrado:', i);
+                return i;
+            }
+            board[i] = EMPTY;
+        }
     }
-  }
-  
-  // 3. Usar Minimax para mejores movimientos
-  let bestScore = -Infinity;
-  let bestMove = -1;
-  
-  for (let i = 0; i < BOARD_LENGTH; i++) {
-    if (board[i] === EMPTY) {
-      board[i] = player;
-      const score = minimax(board, 0, false, player, -Infinity, Infinity, 2);
-      board[i] = EMPTY;
-      
-      if (score > bestScore) {
-        bestScore = score;
-        bestMove = i;
-      }
+    
+    // 2. Bloquear movimiento ganador del oponente
+    const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
+    for (let i = 0; i < BOARD_LENGTH; i++) {
+        if (board[i] === EMPTY) {
+            board[i] = opponent;
+            if (checkWinner(board) === opponent) {
+                board[i] = EMPTY;
+                console.log('Movimiento bloqueador encontrado:', i);
+                return i;
+            }
+            board[i] = EMPTY;
+        }
     }
-  }
-  
-  // 4. Fallback: centro o primera posición disponible
-  if (bestMove === -1) {
+    
+    // 3. Si el centro está disponible, tomarlo
     if (board[CENTER_POSITION] === EMPTY) {
-      bestMove = CENTER_POSITION;
-    } else {
-      bestMove = board.findIndex(cell => cell === EMPTY);
+        console.log('Movimiento al centro:', CENTER_POSITION);
+        return CENTER_POSITION;
     }
-  }
-  
-  console.log('Movimiento final elegido:', bestMove);
-  return bestMove;
+    
+    // 4. Si el centro está ocupado, usar Minimax
+    let bestScore = -Infinity;
+    let bestMove = -1;
+    
+    for (let i = 0; i < BOARD_LENGTH; i++) {
+        if (board[i] === EMPTY) {
+            board[i] = player;
+            const score = minimax(board, 0, false, player, -Infinity, Infinity, 2);
+            board[i] = EMPTY;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                bestMove = i;
+            }
+        }
+    }
+    
+    // 5. Fallback: primera posición disponible
+    if (bestMove === -1) {
+        bestMove = board.findIndex(cell => cell === EMPTY);
+    }
+    
+    console.log('Movimiento final elegido:', bestMove);
+    return bestMove;
 }
 
 // ===============================
