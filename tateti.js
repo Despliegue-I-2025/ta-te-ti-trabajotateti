@@ -5,11 +5,6 @@ const app = express();
 // 1. CONSTANTES Y CONFIGURACIÓN
 // =================================================================
 
-// Definición de PORT: usa la variable de entorno o el puerto 3000 por defecto.
-// NOTA: Esta variable solo se usa si se ejecuta localmente.
-const PORT = process.env.PORT || 3000; 
-
-// Constantes del Juego (asumiendo 5x5 como se indica en los comentarios del código original)
 const BOARD_LENGTH = 25; // 5x5
 const WIN_COUNT = 4;     // 4 en línea
 const EMPTY = 0;         // Celda vacía
@@ -17,130 +12,171 @@ const BOT_nuestro = 1;   // Identificador de nuestro bot
 const Bot_oponente = 2;  // Identificador del oponente
 
 // =================================================================
-// 2. LÓGICA DEL BOT (Funciones mínimas para hacerlo ejecutable)
+// 2. FUNCIONES AUXILIARES (AGREGAR LAS QUE FALTAN)
 // =================================================================
 
 /**
- * Función central de la IA. Aquí es donde se implementaría la lógica de juego
- * (MiniMax, búsqueda de amenazas, etc.).
- * @param {number[]} board - El estado actual del tablero (array plano de 25 posiciones).
- * @returns {number} El índice (0-24) de la mejor jugada, o -1 si no hay jugadas.
+ * Convierte un índice 1D (0-24) a coordenadas 2D (fila, col).
  */
-function TomarMovimiento(board) {
-    // Lógica mínima: simplemente encuentra la primera posición vacía.
-    const emptyIndex = board.findIndex(cell => cell === EMPTY);
-    // En una implementación real, aquí iría la lógica avanzada.
-    return emptyIndex;
+function toCoords(index) {
+    const BOARD_SIZE = 5;
+    return {
+        row: Math.floor(index / BOARD_SIZE),
+        col: index % BOARD_SIZE
+    };
 }
 
-// Placeholders para funciones que se exportan pero no se usan directamente en Express
-function findOpenThreat(board) { return -1; }
-function findDoubleThreat(board) { return -1; }
-
-// =================================================================
-// 3. ENDPOINTS DE LA API
-// =================================================================
+/**
+ * Convierte coordenadas 2D (fila, col) a un índice 1D.
+ */
+function toIndex(row, col) {
+    const BOARD_SIZE = 5;
+    if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
+        return -1;
+    }
+    return row * BOARD_SIZE + col;
+}
 
 /**
- * Endpoint principal para solicitar un movimiento al bot.
- * Recibe el estado del tablero y devuelve la posición de la jugada.
- * Ejemplo de uso: /move?board=[0,0,0,1,2,0,....]
+ * Función simplificada de búsqueda de amenazas
  */
+function findOpenThreat(board, player, count) {
+    // Implementación básica - busca primera posición vacía
+    for (let i = 0; i < BOARD_LENGTH; i++) {
+        if (board[i] === EMPTY) {
+            return i;
+        }
+    }
+    return null;
+}
+
+function findDoubleThreat(board) {
+    return null; // Placeholder
+}
+
+// =================================================================
+// 3. LÓGICA PRINCIPAL DEL BOT
+// =================================================================
+
+function TomarMovimiento(board) {
+    console.log('Tablero recibido:', board);
+    
+    // Lógica mínima: encuentra la primera posición vacía
+    for (let i = 0; i < BOARD_LENGTH; i++) {
+        if (board[i] === EMPTY) {
+            console.log('Movimiento elegido:', i);
+            return i;
+        }
+    }
+    
+    return -1; // No hay movimientos
+}
+
+// =================================================================
+// 4. MIDDLEWARE Y ENDPOINTS
+// =================================================================
+
+// Middleware para logging (útil para debug en Vercel)
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
 app.get('/move', (req, res) => {
     try {
+        console.log('Query recibido:', req.query);
+        
         const boardParam = req.query.board;
         
         if (!boardParam) {
-            return res.status(400).json({ error: 'Parámetro board requerido' });
+            return res.status(400).json({ 
+                error: 'Parámetro board requerido',
+                ejemplo: '/move?board=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]'
+            });
         }
 
         const board = JSON.parse(boardParam);
         
-        // 1. Validación de longitud del tablero
+        // Validación de longitud
         if (!Array.isArray(board) || board.length !== BOARD_LENGTH) {
             return res.status(400).json({ 
-                error: `El tablero debe ser un array de ${BOARD_LENGTH} posiciones (0-${BOARD_LENGTH - 1}) para 5x5` 
+                error: `El tablero debe tener exactamente ${BOARD_LENGTH} posiciones`,
+                longitud_recibida: board.length
             });
         }
 
-        // 2. Validación de valores de celda
+        // Validación de valores
         const validValues = board.every(cell => [EMPTY, BOT_nuestro, Bot_oponente].includes(cell));
         if (!validValues) {
             return res.status(400).json({ 
-                error: `El tablero solo puede contener valores ${EMPTY}, ${BOT_nuestro} o ${Bot_oponente}` 
+                error: 'Valores inválidos en el tablero',
+                valores_permitidos: [EMPTY, BOT_nuestro, Bot_oponente]
             });
         }
 
-        // Obtener el movimiento
         const move = TomarMovimiento(board);
         
         if (move === -1) {
-            // Este caso ocurre si el tablero está lleno y no hay jugadas disponibles
-            return res.status(400).json({ error: 'No hay movimientos disponibles (tablero lleno)' });
+            return res.status(400).json({ 
+                error: 'No hay movimientos disponibles',
+                tablero: board
+            });
         }
 
         // Respuesta exitosa
-        res.json({ 
+        return res.json({ 
             movimiento: move,
-            tablero: board,
             mensaje: `Movimiento en posición ${move}`
         });
 
     } catch (error) {
+        console.error('Error en /move:', error);
+        
         if (error instanceof SyntaxError) {
-            // Error al parsear el JSON de la URL
             return res.status(400).json({ 
-                error: 'JSON inválido en parámetro board. Asegúrate de que el array esté bien formado.' 
+                error: 'JSON inválido en parámetro board',
+                sugerencia: 'Asegúrate de usar el formato correcto: [0,0,0,...] con 25 números'
             });
         }
         
-        if (process.env.NODE_ENV !== 'test') {
-            console.error('Error interno en /move:', error);
-        }
-        // Error general del servidor
-        res.status(500).json({ 
+        return res.status(500).json({ 
             error: 'Error interno del servidor',
-            detalle: error.message 
+            detalle: error.message
         });
     }
 });
 
-/**
- * Endpoint para verificar el estado de salud del bot.
- */
-app.get('/health', (req, res) => {
-    res.json({ 
+app.get('/move', (req, res) => {
+    return res.json({ 
         status: 'OK', 
-        message: 'Bot de 4 en línea (5x5) funcionando',
-        timestamp: new Date().toISOString()
+        message: 'Bot de 4 en línea (5x5) funcionando en Vercel',
+        timestamp: new Date().toISOString(),
+        board_length: BOARD_LENGTH,
+        win_condition: WIN_COUNT
     });
 });
 
-/**
- * Manejo de rutas no encontradas (404).
- */
+app.get('/', (req, res) => {
+    return res.redirect('/move');
+});
+
 app.use('*', (req, res) => {
-    res.status(404).json({ 
+    return res.status(404).json({ 
         error: 'Endpoint no encontrado',
-        endpoints_disponibles: [`/move?board=[array]`, '/health']
+        endpoints_disponibles: [
+            '/move',
+            '/move?board=[array]'
+        ],
+        ejemplo: '/move?board=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]'
     });
 });
 
 // =================================================================
-// 4. INICIO DEL SERVIDOR (Solo para ejecución LOCAL)
+// 5. EXPORTACIÓN PARA VERCEL
 // =================================================================
-let server;
-if (process.env.VERCEL_ENV === undefined) { 
-    // Usamos 'VERCEL_ENV' porque es la variable que Vercel establece en sus servidores.
-    server = app.listen(PORT, () => {
-        const emptyBoard = Array(BOARD_LENGTH).fill(0).toString();
-        console.log(`Bot  escuchando en puerto ${PORT}`);
-        console.log(`Endpoint: http://localhost:${PORT}/move?board=[${emptyBoard}]`);
-    });
-}
 
-// Exportamos la app y las funciones unitarias.
-// Esto permite que: 
-// 1. Vercel use 'app' como el handler principal para las peticiones.
-// 2. Jest importe todas las funciones para las pruebas unitarias.
-module.exports = { app, TomarMovimiento, toCoords, toIndex, findOpenThreat, BOT_nuestro, Bot_oponente, BOARD_LENGTH, WIN_COUNT };
+// ✅ EXPORTACIÓN CORRECTA PARA VERCEL
+module.exports = app;
+
+// Nota: No iniciamos el servidor con app.listen() 
+// porque Vercel maneja esto automáticamente
