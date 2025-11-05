@@ -14,7 +14,7 @@ const Bot_oponente = 2;
 const EMPTY = 0;
 
 // ===============================
-// 🔹 Utilidades de Tablero (de tu compañero)
+// 🔹 Utilidades de Tablero
 // ===============================
 function cell(board, r, c) {
   return board[r * BOARD_SIZE + c];
@@ -25,38 +25,46 @@ function checkWinner(board) {
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c <= BOARD_SIZE - WIN_COUNT; c++) {
       const first = cell(board, r, c);
-      if (first && Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r, c + k)).every(v => v === first)) 
-        return first;
+      if (
+        first &&
+        Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r, c + k)).every(v => v === first)
+      ) return first;
     }
   }
-  
+
   // Vertical
   for (let c = 0; c < BOARD_SIZE; c++) {
     for (let r = 0; r <= BOARD_SIZE - WIN_COUNT; r++) {
       const first = cell(board, r, c);
-      if (first && Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c)).every(v => v === first)) 
-        return first;
+      if (
+        first &&
+        Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c)).every(v => v === first)
+      ) return first;
     }
   }
-  
+
   // Diagonal ↘
   for (let r = 0; r <= BOARD_SIZE - WIN_COUNT; r++) {
     for (let c = 0; c <= BOARD_SIZE - WIN_COUNT; c++) {
       const first = cell(board, r, c);
-      if (first && Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c + k)).every(v => v === first)) 
-        return first;
+      if (
+        first &&
+        Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c + k)).every(v => v === first)
+      ) return first;
     }
   }
-  
+
   // Diagonal ↙
   for (let r = 0; r <= BOARD_SIZE - WIN_COUNT; r++) {
     for (let c = WIN_COUNT - 1; c < BOARD_SIZE; c++) {
       const first = cell(board, r, c);
-      if (first && Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c - k)).every(v => v === first)) 
-        return first;
+      if (
+        first &&
+        Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c - k)).every(v => v === first)
+      ) return first;
     }
   }
-  
+
   return board.includes(EMPTY) ? null : 0;
 }
 
@@ -73,36 +81,33 @@ function evaluateLine(line, player) {
   const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
   const pCount = line.filter(v => v === player).length;
   const oCount = line.filter(v => v === opponent).length;
-  
+
   if (pCount > 0 && oCount > 0) return 0;
   if (pCount === WIN_COUNT) return 10000;
   if (oCount === WIN_COUNT) return -10000;
-  
+
   return pCount * pCount - oCount * oCount;
 }
 
 function evaluateBoard(board, player) {
   let score = 0;
-  
-  // Evaluar líneas horizontales, verticales y diagonales
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c <= BOARD_SIZE - WIN_COUNT; c++) {
       // Horizontal
       score += evaluateLine(Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r, c + k)), player);
-      // Vertical  
+      // Vertical
       if (r <= BOARD_SIZE - WIN_COUNT) {
         score += evaluateLine(Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c)), player);
       }
     }
   }
-  
   return score;
 }
 
 function minimax(board, depth, isMax, player, alpha, beta, maxDepth = 3) {
   const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
   const result = checkWinner(board);
-  
+
   if (result === player) return 1000 - depth;
   if (result === opponent) return depth - 1000;
   if (result === 0 || depth === maxDepth) return evaluateBoard(board, player);
@@ -135,99 +140,85 @@ function minimax(board, depth, isMax, player, alpha, beta, maxDepth = 3) {
 }
 
 // ===============================
-// 🔹 Función Principal del Bot
+// 🔹 Función principal del Bot
 // ===============================
 function TomarMovimiento(board) {
-    console.log('Calculando movimiento para tablero:', board);
-    
-    // ✅ CORRECCIÓN CRÍTICA: Si el tablero está completamente vacío, tomar el centro inmediatamente
-    const isEmpty = board.every(cell => cell === 0);
-    if (isEmpty) {
-        console.log('Tablero vacío - Moviendo al centro:', CENTER_POSITION);
-        return CENTER_POSITION;
+  console.log('Calculando movimiento para tablero:', board);
+
+  const isEmpty = board.every(cell => cell === 0);
+  if (isEmpty) {
+    console.log('Tablero vacío - Moviendo al centro:', CENTER_POSITION);
+    return CENTER_POSITION;
+  }
+
+  const player = detectPlayer(board);
+
+  // 1. Movimiento ganador
+  for (let i = 0; i < BOARD_LENGTH; i++) {
+    if (board[i] === EMPTY) {
+      board[i] = player;
+      if (checkWinner(board) === player) {
+        board[i] = EMPTY;
+        console.log('Movimiento ganador encontrado:', i);
+        return i;
+      }
+      board[i] = EMPTY;
     }
-    
-    // Verificar movimientos inmediatos primero
-    const player = detectPlayer(board);
-    
-    // 1. Buscar movimiento ganador
-    for (let i = 0; i < BOARD_LENGTH; i++) {
-        if (board[i] === EMPTY) {
-            board[i] = player;
-            if (checkWinner(board) === player) {
-                board[i] = EMPTY;
-                console.log('Movimiento ganador encontrado:', i);
-                return i;
-            }
-            board[i] = EMPTY;
-        }
+  }
+
+  // 2. Bloquear al oponente
+  const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
+  for (let i = 0; i < BOARD_LENGTH; i++) {
+    if (board[i] === EMPTY) {
+      board[i] = opponent;
+      if (checkWinner(board) === opponent) {
+        board[i] = EMPTY;
+        console.log('Movimiento bloqueador encontrado:', i);
+        return i;
+      }
+      board[i] = EMPTY;
     }
-    
-    // 2. Bloquear movimiento ganador del oponente
-    const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
-    for (let i = 0; i < BOARD_LENGTH; i++) {
-        if (board[i] === EMPTY) {
-            board[i] = opponent;
-            if (checkWinner(board) === opponent) {
-                board[i] = EMPTY;
-                console.log('Movimiento bloqueador encontrado:', i);
-                return i;
-            }
-            board[i] = EMPTY;
-        }
+  }
+
+  // 3. Centro
+  if (board[CENTER_POSITION] === EMPTY) {
+    console.log('Movimiento al centro:', CENTER_POSITION);
+    return CENTER_POSITION;
+  }
+
+  // 4. Minimax
+  let bestScore = -Infinity;
+  let bestMove = -1;
+  for (let i = 0; i < BOARD_LENGTH; i++) {
+    if (board[i] === EMPTY) {
+      board[i] = player;
+      const score = minimax(board, 0, false, player, -Infinity, Infinity, 2);
+      board[i] = EMPTY;
+      if (score > bestScore) {
+        bestScore = score;
+        bestMove = i;
+      }
     }
-    
-    // 3. Si el centro está disponible, tomarlo
-    if (board[CENTER_POSITION] === EMPTY) {
-        console.log('Movimiento al centro:', CENTER_POSITION);
-        return CENTER_POSITION;
-    }
-    
-    // 4. Si el centro está ocupado, usar Minimax
-    let bestScore = -Infinity;
-    let bestMove = -1;
-    
-    for (let i = 0; i < BOARD_LENGTH; i++) {
-        if (board[i] === EMPTY) {
-            board[i] = player;
-            const score = minimax(board, 0, false, player, -Infinity, Infinity, 2);
-            board[i] = EMPTY;
-            
-            if (score > bestScore) {
-                bestScore = score;
-                bestMove = i;
-            }
-        }
-    }
-    
-    // 5. Fallback: primera posición disponible
-    if (bestMove === -1) {
-        bestMove = board.findIndex(cell => cell === EMPTY);
-    }
-    
-    console.log('Movimiento final elegido:', bestMove);
-    return bestMove;
+  }
+
+  if (bestMove === -1) bestMove = board.findIndex(cell => cell === EMPTY);
+  console.log('Movimiento final elegido:', bestMove);
+  return bestMove;
 }
 
 // ===============================
-// 🔹 Funciones Auxiliares para Tests
+// 🔹 Funciones auxiliares para tests
 // ===============================
 function toCoords(index) {
-  return {
-    row: Math.floor(index / BOARD_SIZE),
-    col: index % BOARD_SIZE
-  };
+  return { row: Math.floor(index / BOARD_SIZE), col: index % BOARD_SIZE };
 }
 
 function toIndex(row, col) {
-  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
-    return -1;
-  }
+  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return -1;
   return row * BOARD_SIZE + col;
 }
 
 function findOpenThreat(board, player, count) {
-  // Implementación simplificada para tests
   for (let i = 0; i < BOARD_LENGTH; i++) {
     if (board[i] === EMPTY) {
       board[i] = player;
@@ -240,75 +231,77 @@ function findOpenThreat(board, player, count) {
 }
 
 // ===============================
-// 🔹 Endpoints Express
+// 🔹 Único endpoint /move
 // ===============================
 app.get('/move', (req, res) => {
   try {
     const boardParam = req.query.board;
-    
+
     if (!boardParam) {
       return res.status(400).json({ error: 'Parámetro board requerido' });
     }
 
     const board = JSON.parse(boardParam);
-    
+
     if (!Array.isArray(board) || board.length !== BOARD_LENGTH) {
-      return res.status(400).json({ 
-        error: `El tablero debe ser un array de ${BOARD_LENGTH} posiciones` 
+      return res.status(400).json({
+        error: `El tablero debe ser un array de ${BOARD_LENGTH} posiciones`
       });
     }
 
     const validValues = board.every(cell => [EMPTY, BOT_nuestro, Bot_oponente].includes(cell));
     if (!validValues) {
-      return res.status(400).json({ 
-        error: 'El tablero solo puede contener valores 0, 1 o 2' 
+      return res.status(400).json({
+        error: 'El tablero solo puede contener valores 0, 1 o 2'
       });
     }
 
     const move = TomarMovimiento(board);
-    
     if (move === -1) {
       return res.status(400).json({ error: 'No hay movimientos disponibles' });
     }
 
-    return res.json({ 
+    return res.json({
       movimiento: move,
       mensaje: `Movimiento en posición ${move}`
     });
-
   } catch (error) {
     console.error('Error en /move:', error);
     if (error instanceof SyntaxError) {
       return res.status(400).json({ error: 'JSON inválido en parámetro board' });
     }
-    return res.status(500).json({ 
+    return res.status(500).json({
       error: 'Error interno del servidor',
-      detalle: error.message 
+      detalle: error.message
     });
   }
 });
 
-app.get('/health', (req, res) => {
-  return res.json({ 
-    status: 'OK', 
-    message: 'Bot de 4 en línea (5x5) con IA funcionando',
-    timestamp: new Date().toISOString()
-  });
-});
-
+// ===============================
+// 🔹 Manejo de rutas no válidas
+// ===============================
 app.use('*', (req, res) => {
-  return res.status(404).json({ 
+  return res.status(404).json({
     error: 'Endpoint no encontrado',
-    endpoints_disponibles: ['/move?board=[array]', '/health']
+    endpoints_disponibles: ['/move?board=[array]']
   });
 });
 
 // ===============================
-// 🔹 Exportación para Vercel
+// 🔹 Servidor local (solo si se ejecuta directamente)
+// ===============================
+if (require.main === module) {
+  const PORT = process.env.PORT || 3020;
+  app.listen(PORT, () => {
+    console.log(`Servidor local escuchando en http://localhost:${PORT}`);
+    console.log(`Probar con: http://localhost:${PORT}/move?board=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]`);
+  });
+}
+
+// ===============================
+// 🔹 Exportación para Vercel y tests
 // ===============================
 module.exports = app;
-
-// Exportaciones para tests
 module.exports.TomarMovimiento = TomarMovimiento;
 module.exports.findOpenThreat = findOpenThreat;
 module.exports.toCoords = toCoords;
