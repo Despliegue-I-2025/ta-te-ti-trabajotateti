@@ -1,21 +1,18 @@
 {
-  "name": "tateti-bot",
+  "name": "bot-ta-te-ti-5x5",
   "version": "1.0.0",
-  "description": "Bot de TaTeTi (4 en línea, 5x5) para Express/Vercel",
   "main": "tateti.js",
   "scripts": {
     "start": "node tateti.js",
-    "dev": "nodemon tateti.js",
-    "test": "cross-env NODE_ENV=test jest --forceExit --detectOpenHandles",
-    "test:watch": "cross-env NODE_ENV=test jest --watch --forceExit",
-    "test:coverage": "cross-env NODE_ENV=test jest --coverage --forceExit --detectOpenHandles"
+    "dev": "node tateti.js",
+    "test": "jest"
   },
   "dependencies": {
-    "express": "^4.18.2"
+    "express": "^4.19.2"
   },
   "devDependencies": {
-    "jest": "^29.0.0",
-    "supertest": "^6.0.0",
+    "jest": "^30.2.0",
+    "supertest": "^7.1.4",
     "cross-env": "^7.0.3"
   }
 }
