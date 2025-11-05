@@ -1,20 +1,12 @@
 {
   "name": "bot-ta-te-ti-5x5",
   "version": "1.0.0",
-  "description": "Bot para jugar 4 en línea (5x5) con Express.",
-  "main": "tateti.js",
+  "main": "api/index.js",
   "scripts": {
-    "start": "node tateti.js",
-    "dev": "node tateti.js",
-    "test": "echo \"Ejecuta tests localmente con: jest\" && exit 0"
+    "dev": "node api/index.js",
+    "start": "node api/index.js"
   },
-  "keywords": ["tateti", "connect4", "bot", "vercel"],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "express": "^4.19.2"
-  },
-  "engines": {
-    "node": ">=18.x"
   }
 }
