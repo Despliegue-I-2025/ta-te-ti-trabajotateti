@@ -204,7 +204,7 @@ app.get('/move', (req, res) => {
     return res.json({
       status: 'activo',
       entorno,
-      puerto: entorno === 'producción' ? 'auto (Vercel)' : puerto,
+      puerto: puerto,
       movimiento: move,
       mensaje: boardParam
         ? `Movimiento calculado en posición ${move}`
