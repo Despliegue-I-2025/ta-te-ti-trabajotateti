@@ -204,7 +204,7 @@ app.get('/move', (req, res) => {
     return res.json({
       status: 'activo',
       entorno,
-      puerto: puerto,
+      puerto: 3020,
       movimiento: move,
       mensaje: boardParam
         ? `Movimiento calculado en posición ${move}`
