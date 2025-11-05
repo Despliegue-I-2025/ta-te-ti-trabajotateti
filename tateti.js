@@ -93,9 +93,7 @@ function evaluateBoard(board, player) {
   let score = 0;
   for (let r = 0; r < BOARD_SIZE; r++) {
     for (let c = 0; c <= BOARD_SIZE - WIN_COUNT; c++) {
-      // Horizontal
       score += evaluateLine(Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r, c + k)), player);
-      // Vertical
       if (r <= BOARD_SIZE - WIN_COUNT) {
         score += evaluateLine(Array.from({ length: WIN_COUNT }, (_, k) => cell(board, r + k, c)), player);
       }
@@ -148,7 +146,6 @@ function TomarMovimiento(board) {
 
   const player = detectPlayer(board);
 
-  // 1. Movimiento ganador
   for (let i = 0; i < BOARD_LENGTH; i++) {
     if (board[i] === EMPTY) {
       board[i] = player;
@@ -160,7 +157,6 @@ function TomarMovimiento(board) {
     }
   }
 
-  // 2. Bloquear al oponente
   const opponent = player === BOT_nuestro ? Bot_oponente : BOT_nuestro;
   for (let i = 0; i < BOARD_LENGTH; i++) {
     if (board[i] === EMPTY) {
@@ -173,10 +169,8 @@ function TomarMovimiento(board) {
     }
   }
 
-  // 3. Centro
   if (board[CENTER_POSITION] === EMPTY) return CENTER_POSITION;
 
-  // 4. Minimax
   let bestScore = -Infinity;
   let bestMove = -1;
   for (let i = 0; i < BOARD_LENGTH; i++) {
@@ -196,37 +190,25 @@ function TomarMovimiento(board) {
 }
 
 // ===============================
-// 🔹 Endpoint /move
+// 🔹 Endpoint /move (también informa estado)
 // ===============================
 app.get('/move', (req, res) => {
   try {
     const boardParam = req.query.board;
-
-    // Si no se pasa tablero, usar uno vacío
     const board = boardParam ? JSON.parse(boardParam) : Array(BOARD_LENGTH).fill(0);
-
-    if (!Array.isArray(board) || board.length !== BOARD_LENGTH) {
-      return res.status(400).json({
-        error: `El tablero debe ser un array de ${BOARD_LENGTH} posiciones`
-      });
-    }
-
-    const validValues = board.every(cell => [EMPTY, BOT_nuestro, Bot_oponente].includes(cell));
-    if (!validValues) {
-      return res.status(400).json({
-        error: 'El tablero solo puede contener valores 0, 1 o 2'
-      });
-    }
-
     const move = TomarMovimiento(board);
-    if (move === -1) {
-      return res.status(400).json({ error: 'No hay movimientos disponibles' });
-    }
+
+    const entorno = process.env.VERCEL ? 'producción' : 'local';
+    const puerto = process.env.PORT || 3020;
 
     return res.json({
+      status: 'activo',
+      entorno,
+      puerto: entorno === 'producción' ? 'auto (Vercel)' : puerto,
       movimiento: move,
-      mensaje: `Movimiento en posición ${move}`,
-      tablero: board
+      mensaje: boardParam
+        ? `Movimiento calculado en posición ${move}`
+        : 'Movimiento inicial generado automáticamente'
     });
   } catch (error) {
     return res.status(500).json({
@@ -237,17 +219,17 @@ app.get('/move', (req, res) => {
 });
 
 // ===============================
-// 🔹 Manejo de rutas no válidas
+// 🔹 Rutas no válidas
 // ===============================
 app.use('*', (req, res) => {
   return res.status(404).json({
     error: 'Endpoint no encontrado',
-    endpoints_disponibles: ['/move']
+    endpoint_disponible: '/move'
   });
 });
 
 // ===============================
-// 🔹 Servidor local (solo si se ejecuta directamente)
+// 🔹 Servidor local
 // ===============================
 if (require.main === module) {
   const PORT = process.env.PORT || 3020;
@@ -258,13 +240,7 @@ if (require.main === module) {
 }
 
 // ===============================
-// 🔹 Exportación para Vercel y tests
+// 🔹 Exportación para Vercel
 // ===============================
 module.exports = app;
 module.exports.TomarMovimiento = TomarMovimiento;
-module.exports.checkWinner = checkWinner;
-module.exports.BOT_nuestro = BOT_nuestro;
-module.exports.Bot_oponente = Bot_oponente;
-module.exports.BOARD_LENGTH = BOARD_LENGTH;
-module.exports.WIN_COUNT = WIN_COUNT;
-module.exports.CENTER_POSITION = CENTER_POSITION;
