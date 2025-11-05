@@ -143,13 +143,8 @@ function minimax(board, depth, isMax, player, alpha, beta, maxDepth = 3) {
 // 🔹 Función principal del Bot
 // ===============================
 function TomarMovimiento(board) {
-  console.log('Calculando movimiento para tablero:', board);
-
   const isEmpty = board.every(cell => cell === 0);
-  if (isEmpty) {
-    console.log('Tablero vacío - Moviendo al centro:', CENTER_POSITION);
-    return CENTER_POSITION;
-  }
+  if (isEmpty) return CENTER_POSITION;
 
   const player = detectPlayer(board);
 
@@ -159,7 +154,6 @@ function TomarMovimiento(board) {
       board[i] = player;
       if (checkWinner(board) === player) {
         board[i] = EMPTY;
-        console.log('Movimiento ganador encontrado:', i);
         return i;
       }
       board[i] = EMPTY;
@@ -173,7 +167,6 @@ function TomarMovimiento(board) {
       board[i] = opponent;
       if (checkWinner(board) === opponent) {
         board[i] = EMPTY;
-        console.log('Movimiento bloqueador encontrado:', i);
         return i;
       }
       board[i] = EMPTY;
@@ -181,10 +174,7 @@ function TomarMovimiento(board) {
   }
 
   // 3. Centro
-  if (board[CENTER_POSITION] === EMPTY) {
-    console.log('Movimiento al centro:', CENTER_POSITION);
-    return CENTER_POSITION;
-  }
+  if (board[CENTER_POSITION] === EMPTY) return CENTER_POSITION;
 
   // 4. Minimax
   let bestScore = -Infinity;
@@ -202,46 +192,18 @@ function TomarMovimiento(board) {
   }
 
   if (bestMove === -1) bestMove = board.findIndex(cell => cell === EMPTY);
-  console.log('Movimiento final elegido:', bestMove);
   return bestMove;
 }
 
 // ===============================
-// 🔹 Funciones auxiliares para tests
-// ===============================
-function toCoords(index) {
-  return { row: Math.floor(index / BOARD_SIZE), col: index % BOARD_SIZE };
-}
-
-function toIndex(row, col) {
-  if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) return -1;
-  return row * BOARD_SIZE + col;
-}
-
-function findOpenThreat(board, player, count) {
-  for (let i = 0; i < BOARD_LENGTH; i++) {
-    if (board[i] === EMPTY) {
-      board[i] = player;
-      const winner = checkWinner(board);
-      board[i] = EMPTY;
-      if (winner === player) return i;
-    }
-  }
-  return null;
-}
-
-// ===============================
-// 🔹 Único endpoint /move
+// 🔹 Endpoint /move
 // ===============================
 app.get('/move', (req, res) => {
   try {
     const boardParam = req.query.board;
 
-    if (!boardParam) {
-      return res.status(400).json({ error: 'Parámetro board requerido' });
-    }
-
-    const board = JSON.parse(boardParam);
+    // Si no se pasa tablero, usar uno vacío
+    const board = boardParam ? JSON.parse(boardParam) : Array(BOARD_LENGTH).fill(0);
 
     if (!Array.isArray(board) || board.length !== BOARD_LENGTH) {
       return res.status(400).json({
@@ -263,13 +225,10 @@ app.get('/move', (req, res) => {
 
     return res.json({
       movimiento: move,
-      mensaje: `Movimiento en posición ${move}`
+      mensaje: `Movimiento en posición ${move}`,
+      tablero: board
     });
   } catch (error) {
-    console.error('Error en /move:', error);
-    if (error instanceof SyntaxError) {
-      return res.status(400).json({ error: 'JSON inválido en parámetro board' });
-    }
     return res.status(500).json({
       error: 'Error interno del servidor',
       detalle: error.message
@@ -283,7 +242,7 @@ app.get('/move', (req, res) => {
 app.use('*', (req, res) => {
   return res.status(404).json({
     error: 'Endpoint no encontrado',
-    endpoints_disponibles: ['/move?board=[array]']
+    endpoints_disponibles: ['/move']
   });
 });
 
@@ -294,7 +253,7 @@ if (require.main === module) {
   const PORT = process.env.PORT || 3020;
   app.listen(PORT, () => {
     console.log(`Servidor local escuchando en http://localhost:${PORT}`);
-    console.log(`Probar con: http://localhost:${PORT}/move?board=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]`);
+    console.log(`Probar con: http://localhost:${PORT}/move`);
   });
 }
 
@@ -303,9 +262,6 @@ if (require.main === module) {
 // ===============================
 module.exports = app;
 module.exports.TomarMovimiento = TomarMovimiento;
-module.exports.findOpenThreat = findOpenThreat;
-module.exports.toCoords = toCoords;
-module.exports.toIndex = toIndex;
 module.exports.checkWinner = checkWinner;
 module.exports.BOT_nuestro = BOT_nuestro;
 module.exports.Bot_oponente = Bot_oponente;
