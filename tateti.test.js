@@ -1,5 +1,5 @@
 // Importamos la app, que ahora contiene todas las funciones unitarias adjuntas.
-const app = require('./server'); // Usamos 'server' para reflejar el nombre del archivo principal
+const app = require('./tateti'); // Usamos 'server' para reflejar el nombre del archivo principal
 
 // Desestructuramos las funciones y constantes que están adjuntas a 'app'.
 const {
